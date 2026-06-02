@@ -1,0 +1,85 @@
+"use client";
+
+import type { Product } from "@/types";
+import { useCartStore } from "@/store/cart";
+
+interface ProductCardProps {
+  product: Product;
+}
+
+export function ProductCard({ product }: ProductCardProps) {
+  const addItem = useCartStore((s) => s.addItem);
+  const items   = useCartStore((s) => s.items);
+  const inCart  = items.some((i) => i.product.id === product.id);
+
+  const discount = product.originalPrice
+    ? Math.round((1 - product.price / product.originalPrice) * 100)
+    : null;
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow group">
+      {/* Image area */}
+      <div className="relative h-48 bg-gray-50 flex items-center justify-center text-6xl">
+        {product.image}
+        {discount && (
+          <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+            -{discount}%
+          </span>
+        )}
+        {!product.inStock && (
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+            <span className="text-sm font-medium text-gray-500">Sem estoque</span>
+          </div>
+        )}
+      </div>
+
+      {/* Body */}
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <h3 className="font-semibold text-gray-900 text-sm leading-tight">
+            {product.name}
+          </h3>
+        </div>
+
+        <p className="text-gray-400 text-xs mb-3 line-clamp-2">
+          {product.description}
+        </p>
+
+        {/* Rating */}
+        <div className="flex items-center gap-1 mb-3">
+          <span className="text-yellow-400 text-xs">★</span>
+          <span className="text-xs font-medium text-gray-700">{product.rating}</span>
+          <span className="text-xs text-gray-400">({product.reviewCount})</span>
+        </div>
+
+        {/* Price */}
+        <div className="flex items-end justify-between">
+          <div>
+            {product.originalPrice && (
+              <p className="text-xs text-gray-400 line-through">
+                R$ {product.originalPrice.toFixed(2)}
+              </p>
+            )}
+            <p className="text-lg font-bold text-gray-900">
+              R$ {product.price.toFixed(2)}
+            </p>
+          </div>
+
+          <button
+            onClick={() => addItem(product)}
+            disabled={!product.inStock}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+              inCart
+                ? "bg-green-500 text-white"
+                : product.inStock
+                ? "bg-gray-900 text-white hover:bg-gray-700"
+                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+            }`}
+          >
+            {inCart ? "✓ Adicionado" : "Adicionar"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
