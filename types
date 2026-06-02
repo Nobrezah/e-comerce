@@ -1,0 +1,37 @@
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  category: Category;
+  image: string;
+  rating: number;
+  reviewCount: number;
+  inStock: boolean;
+  tags: string[];
+}
+
+export type Category =
+  | "todos"
+  | "eletronicos"
+  | "roupas"
+  | "casa"
+  | "esportes";
+
+export interface CartItem {
+  product: Product;
+  quantity: number;
+}
+
+export interface CartStore {
+  items: CartItem[];
+  isOpen: boolean;
+  addItem: (product: Product) => void;
+  removeItem: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
+  clearCart: () => void;
+  toggleCart: () => void;
+  totalItems: () => number;
+  totalPrice: () => number;
+}
