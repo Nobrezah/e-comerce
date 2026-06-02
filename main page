@@ -1,0 +1,118 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { Header } from "@/components/layout/Header";
+import { ProductCard } from "@/components/product/ProductCard";
+import { CartDrawer } from "@/components/cart/CartDrawer";
+import { products, categories } from "@/lib/products";
+import type { Category } from "@/types";
+
+export default function HomePage() {
+  const [activeCategory, setActiveCategory] = useState<Category>("todos");
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<"relevancia" | "menor-preco" | "maior-preco" | "avaliacao">(
+    "relevancia"
+  );
+
+  const filtered = useMemo(() => {
+    let list = products;
+
+    if (activeCategory !== "todos") {
+      list = list.filter((p) => p.category === activeCategory);
+    }
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q) ||
+          p.tags.some((t) => t.includes(q))
+      );
+    }
+
+    switch (sort) {
+      case "menor-preco":  return [...list].sort((a, b) => a.price - b.price);
+      case "maior-preco":  return [...list].sort((a, b) => b.price - a.price);
+      case "avaliacao":    return [...list].sort((a, b) => b.rating - a.rating);
+      default:             return list;
+    }
+  }, [activeCategory, search, sort]);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <CartDrawer />
+
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        {/* Hero */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Produtos em Destaque
+          </h1>
+          <p className="text-gray-500">
+            {products.length} produtos disponíveis
+          </p>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          {/* Search */}
+          <div className="relative flex-1">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+            <input
+              type="text"
+              placeholder="Buscar produtos..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400 transition-colors"
+            />
+          </div>
+
+          {/* Sort */}
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as typeof sort)}
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
+          >
+            <option value="relevancia">Relevância</option>
+            <option value="menor-preco">Menor preço</option>
+            <option value="maior-preco">Maior preço</option>
+            <option value="avaliacao">Melhor avaliação</option>
+          </select>
+        </div>
+
+        {/* Categories */}
+        <div className="flex gap-2 flex-wrap mb-8">
+          {categories.map((cat) => (
+            <button
+              key={cat.value}
+              onClick={() => setActiveCategory(cat.value as Category)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeCategory === cat.value
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-600 border border-gray-200 hover:border-gray-400"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Grid */}
+        {filtered.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filtered.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 text-gray-400">
+            <span className="text-5xl block mb-3">🔍</span>
+            <p>Nenhum produto encontrado.</p>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
